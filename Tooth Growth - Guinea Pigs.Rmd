@@ -1,0 +1,109 @@
+---
+title: "Tooth Growth Analysis in Guinea Pigs"
+author: "Anirban Basu"
+date: "March 18, 2016"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+The dataset ToothGrowth is part of the datasets package in R. It contains experimental data on the effect of different doses of either orange juice (denoted as OJ in this analysis) and ascorbic acid (denoted as VC). Let's look at some the properties of this dataset.
+
+##
+The dimensions of the dataset are:
+```{r dimensions, echo=FALSE}
+dim(ToothGrowth) ## dimensions of the matrix
+```
+
+The details of each column in the dataset are:
+```{r details, echo=FALSE}
+str(ToothGrowth) ## 
+```
+
+A basic  statistical analysis to summarize the data tells us more about each column:
+```{r summary, echo=FALSE}
+summary(ToothGrowth)
+```
+
+##
+The dataset contains 60 rows and 3 columns. Each row represents the effect of a particular dose on a guinea pig. Doses provided can be 0.5, 1.0 or 2.0 mg/day (third column) of either OJ or VC (second column) with the length of the tooth (first column) being measured after the guinea pigs have received these doses.
+
+## Initial Analysis
+Before looking into the details of each individual data point, we can look at the mean for each category of dosage. The summary table below shows the average toothgrowth for each dosage category, with the rows denoting the vitamin supplement (OJ or VC) and the columns denoting the dose.
+```{r reshaping, echo=FALSE}
+library(reshape2)
+summ_mean <- dcast(ToothGrowth, supp ~ dose, mean, value.var = "len")
+summ_mean
+```
+##
+Given below are the standard deviations for each of the 6 subsets of the data:
+```{r, echo=FALSE}
+summ_sd <- dcast(ToothGrowth, supp ~ dose, sd, value.var = "len")
+
+summ_sd
+```
+
+## Data Visualization
+
+Seen below are two different plots that can help us visualize the data. The first plot is a boxplot which shows the range of values that 'len' or length of the tooth acquires for different dose levels and supplements. In the second plot, we see the average tooth length for all six subgroups of the data.
+
+```{r meanplot, echo=FALSE}
+ToothGrowth.VC <- subset(ToothGrowth, supp == "VC") ## Hospitals belonging to the particular state
+ToothGrowth.OJ <- subset(ToothGrowth, supp == "OJ") ## Hospitals belonging to the particular state
+boxplot(len ~ dose, data = ToothGrowth.VC,
+        boxwex = 0.25, at = 1:3 - 0.2, 
+        col = "red",
+        xlab = "dose [mg/day]",
+        ylab = "tooth length",
+        xlim = c(0.5, 3.5), ylim = c(0, 35), yaxs = "i")
+boxplot(len ~ dose, data = ToothGrowth.OJ, add = TRUE,
+        boxwex = 0.25, at = 1:3 + 0.2,
+        col = "orange")
+legend(2.5, 11, c("VC", "OJ"),
+       fill = c("red", "orange"))
+
+plot(c("0.5", "1.0", "2.0"), xlim = c(0.5,2.0), type = "n", xlab = "dose [mg/day]", ylab = "avg tooth length", ylim = c(0, 35), yaxs = "i")
+lines(c("0.5", "1.0", "2.0"), summ_mean[2,2:4], col = "red")
+lines(c("0.5", "1.0", "2.0"), summ_mean[1,2:4])
+legend(1.5, 12, c("VC", "OJ"), lwd=0.1,
+       col = c("red", "black"))
+```
+
+##
+In general, these visualizations tell us that tooth length increases with increase in dose. Also, supplement "VC"" seems to yield a higher tooth growth than "OJ". That being said, at a dose of 2 mg/day, the difference between average tooth lengths due to "VC" and that due to "OJ" seems small.
+
+Let our null hypothesis be that supp "VC" and supp "OJ" on an average yield similar tooth growth. A t-interval comparison between "VC" and "OJ" at different dose levels can help us decide how likely it is for the hypothesis to be true.
+
+The three confidence interval analysis in the following tables compare "VC" and "OJ" for each of the three dose levels i.e. 0.5, 1.0, and 2.0 mg/day respectively. The tables contain several details such as the p-value for the alternative hypothesis, the degrees of freedom for each set of data, the t-statistic, and the 95% confidence interval.
+
+Dose of 0.5 mg/day
+```{r t-interval 0.5, echo=FALSE}
+Dose0.5 <- subset(ToothGrowth, dose == 0.5)
+t.test(len ~ supp, paired = FALSE, var.equal = FALSE, data = Dose0.5)
+```
+
+Dose of 1.0 mg/day
+```{r t-interval 1.0, echo=FALSE}
+Dose1.0 <- subset(ToothGrowth, dose == 1.0)
+t.test(len ~ supp, paired = FALSE, var.equal = FALSE, data = Dose1.0)
+```
+
+Dose of 2.0 mg/day
+```{r t-interval 2.0, echo=FALSE}
+Dose2.0 <- subset(ToothGrowth, dose == 2.0)
+t.test(len ~ supp, paired = FALSE, var.equal = FALSE, data = Dose2.0)
+```
+
+From the tables above, we can observe that for a dose level of 2.0 mg/day, the 95% confidence interval comparing "VC" to "OJ" contains the value 0. For all the other dose levels, the confidence interval is wholly above 0.
+
+Therefore, we can conclude that "OJ" yields a greater increase in tooth length than "VC" at dose levels of 0.5 and 1.0 mg/day. At 2.0 mg/day however, the effects of "VC" and "OJ" are comparable.
+
+## Assumptions
+1. There are no correlations between individual guinea pigs chosen for this experiment. The guinea pigs are 60 different individuals randomly chosen from a population of guinea pigs.
+2. There are no genetic predispositions in the different subgroups of guinea pigs. We assume that there is randomness maintained while choosing subgroups from within the population of 60 guinea pigs.
+3. Unequal variances have been assumed for all t interval analyses. This is a safer assumption in the case of this dataset.
+4. There are absolutely no pairings. A particular guinea pig is provided one and one dose only of either of the two supplements (but not both).

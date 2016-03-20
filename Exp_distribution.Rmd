@@ -1,0 +1,52 @@
+---
+title: "Analysis of Means of exponential distributions"
+author: "Anirban Basu"
+date: "March 18, 2016"
+output: word_document
+---
+
+## Overview
+
+In this analysis we validate the Central Limit Theorem using the example of an exponential distribution. Here, we study the distribution of means of 1000 samples each of size 40 with an exponential distribution. 
+
+## Analysis
+
+The mean and standard deviation of an exponential distribution is given by 1/lambda where lambda is the exponential rate parameter. In our analysis, lambda in assumed 0.2 and the size of 1 sample is assumed 1000. First, let us look at a histogram of one such sample with exponential distribution. We also simulate the mean and standard deviation of this sample distribution. 
+
+```{r exponential_dist, echo=FALSE}
+hist(rexp(1000, 0.2), main = "Histogram of exponential distribution of n=1000")
+paste("mean = ",mean(rexp(1000, 0.2)))
+paste("standard deviation = ",sd(rexp(1000, 0.2)))
+```
+
+As expected, this sample of size 1000 follows an approximately exponential distribution. Both the mean and standard deviation are close to the theoretical value of 1/lambda i.e. mean = sd = 5. 
+
+Next, we take the means of 1000 samples of size 40 and look at the histogram of the distribution of means.
+
+```{r dist_means, echo=FALSE}
+exp_means = NULL
+for (i in 1 : 1000) exp_means = c(exp_means, mean(rexp(40, 0.2)))
+hist(exp_means, main = "Distribution of means for sample size = 40")
+```
+
+The distribution of means is approaching a normal distribution. Let us now evaluate the mean and standard deviation of the above distribution.
+
+As per Central Limit Theorem, the mean of this distribution should be equal to mean of the population = 5.0.
+
+The theoretical value of the standard error of this distribution = 5/sqrt(40) = 0.79
+
+Below are the simulated values of the mean and standard error respectively:
+```{r mean_and_sd, echo=FALSE}
+paste("mean = ",mean(exp_means))
+paste("standard error = ",sd(exp_means))
+```
+
+As we see, the simulated values closely match the theoretical value thus validating the Central Limit Theorem.
+
+If we increase the sample size, the distribution of means will be even closer to a normal distribution. As an example, here is the dsitribution of means for sample size of 80.
+
+```{r dist_means_80, echo=FALSE}
+exp_means = NULL
+for (i in 1 : 1000) exp_means = c(exp_means, mean(rexp(80, 0.2)))
+hist(exp_means, main = "Distribution of means for sample size = 80")
+```
